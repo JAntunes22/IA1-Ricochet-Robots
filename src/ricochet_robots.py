@@ -50,7 +50,6 @@ class Board:
 			if r.getColor() == robot:
 				return r.getPos()
 		
-		pass
 
 	# TODO: outros metodos da classe
 
@@ -58,7 +57,6 @@ class Board:
 def parse_instance(filename: str) -> Board:
 	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
 	uma instância da classe Board. """
-	# TODO
 
 	robots = []
 	barriers = []
@@ -85,14 +83,10 @@ def parse_instance(filename: str) -> Board:
 	return Board(robots, target, barriers)
 
 
-	pass
-
-
 class RicochetRobots(Problem):
 	def __init__(self, board: Board):
 		""" O construtor especifica o estado inicial. """
-		# TODO: self.initial = ...
-		pass
+		self.initial = RRState(Board)
 
 	def actions(self, state: RRState):
 		""" Retorna uma lista de ações que podem ser executadas a
