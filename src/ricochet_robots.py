@@ -24,31 +24,116 @@ class RRState:
 		de abertos nas procuras informadas. """
 		return self.id < other.id
 
-class Robot:
-
-	def __init__(self, color, x, y):
-		self.color = color
-		self.x = x
-		self.y = y
-
-	def getPos():
-		return (self.x, self.y)
-	
-	def getColor():
-		return self.color
 
 class Board:
-	""" Representacao interna de um tabuleiro de Ricochet Robots. """
+	class Cell:
+		def __init__(self, x, y):
+			self.up = None
+			self.right = None
+			self.down = None
+			self.left = None
+			
+			self.x = x
+			self.y = y
 
-	def __init__(self, robots, target, barriers):
-		self.robots = robots
-		self.target = target
+			self.target = None
+			self.robot = None
+
+		def setUp(self, p):
+			self.up = p
+
+		def setDown(self, p):
+			self.down = p
+
+		def setRight(self, p):
+			self.right = p
+
+		def setLeft(self, p):
+			self.left = p
+
+		def getUp(self):
+			return self.up
+
+		def getDown(self):
+			return self.down
+
+		def getRight(self):
+			return self.right
+
+		def getLeft(self):
+			return self.left
+
+		def getCords(self):
+			return (self.x, self.y)
+
+		def addRobot(self, robot):
+			if not self.robot:
+				self.robot = robot
+			else:
+				pass
+		
+		def removeRobot(self):
+			if self.robot:
+				self.robot = None
+			else:
+				pass
+
+		def setTarget(self, target):
+			self.target = target
+		
+	
+	""" Representacao interna de um tabuleiro de Ricochet Robots. """
+	def __init__(self, n, robots, target, barriers):
+		self.grid = [[Board.Cell(i, j) for i in range(n)] for j in range(n)]
+		self.target = self.grid[target[2] - 1][target[1] - 1]
+		self.target.setTarget(target[0])
+		self.n = n # grid size
+
+		for robot in robots:
+			c = self.grid[robot[2]-1][robot[1]-1]
+			c.addRobot(robot[0])
+
+			if(robot[0] == 'Y'):
+				self.yellow = c
+			elif(robot[0] == 'R'):
+				self.red = c
+			elif(robot[0] == 'G'):
+				self.green = c
+			elif(robot[0] == 'B'):
+				self.blue = c
+		
+		for y in range(0, n):
+			for x in range(0, n):
+				if x < (n - 1):
+					self.grid[y][x].setRight(self.grid[y][x+1])
+					self.grid[y][x+1].setLeft(self.grid[y][x])
+				if y < (n - 1):
+					self.grid[y][x].setDown(self.grid[y+1][x])
+					self.grid[y+1][x].setUp(self.grid[y][x])
+
+		
+		for barrier in barriers:
+			c = self.grid[barrier[1] - 1][barrier[0] - 1]
+			if(barrier[2] == 'u'):
+				c.setUp(None)
+			elif(barrier[2] == 'r'):
+				c.setRight(None)
+			elif(barrier[2] == 'd'):
+				c.setDown(None)
+			elif(barrier[2] == 'l'):
+				c.setLeft(None)
+				
 
 	def robot_position(self, robot: str):
 		""" Devolve a posição atual do robô passado como argumento. """
-		for r in self.robots:
-			if r.getColor() == robot:
-				return r.getPos()
+		if(robot[0] == 'Y'):
+			return self.yellow.getCords()
+		elif(robot[0] == 'R'):
+			return self.red.getCords()
+		elif(robot[0] == 'G'):
+			return self.green.getCords()
+		elif(robot[0] == 'B'):
+			return self.blue.getCords()
 		
 
 	# TODO: outros metodos da classe
@@ -67,20 +152,24 @@ def parse_instance(filename: str) -> Board:
 	for i in range(0, n):
 		input_str = file.readline()
 		split_str = input_str.split()
-		robot = Robot(split_str[0], int(split_str[1]), int(split_str[2]))
-		robots.append(robot)
+		split_str[1] = int(split_str[1])
+		split_str[2] = int(split_str[2])	
+		robots.append(split_str)
 
 	input_str = file.readline()
 	target = input_str.split()
+	target[1] = int(target[1])
+	target[2] = int(target[2])
 
-	n = int(file.readline())
-	for i in range(0, n):
+	m = int(file.readline())
+	for i in range(0, m):
 		input_str = file.readline()
 		split_str = input_str.split()
-		robot = Robot(split_str[0], int(split_str[1]), int(split_str[2]))
-		barriers.append(input_str)
+		split_str[0] = int(split_str[0])
+		split_str[1] = int(split_str[1])	
+		barriers.append(split_str)
 
-	return Board(robots, target, barriers)
+	return Board(n, robots, target, barriers)
 
 
 class RicochetRobots(Problem):
