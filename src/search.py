@@ -284,6 +284,8 @@ def best_first_graph_search(problem, f, display=False):
 				if f(child) < frontier[child]:
 					del frontier[child]
 					frontier.append(child)
+
+
 	return None
 
 

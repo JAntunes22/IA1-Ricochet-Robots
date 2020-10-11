@@ -116,12 +116,16 @@ class Board:
 		for barrier in barriers:
 			c = self.grid[barrier[0] - 1][barrier[1] - 1]
 			if(barrier[2] == 'u'):
+				c.up.setDown(None)
 				c.setUp(None)
 			elif(barrier[2] == 'r'):
+				c.right.setLeft(None)
 				c.setRight(None)
 			elif(barrier[2] == 'd'):
+				c.down.setUp(None)
 				c.setDown(None)
 			elif(barrier[2] == 'l'):
+				c.left.setRight(None)
 				c.setLeft(None)
 	
 	def getTarget(self):
@@ -174,6 +178,8 @@ class Board:
 
 		cell.addRobot(robot)
 
+		return RRState(self)
+
 def parse_instance(filename: str) -> Board:
 	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
 	uma instância da classe Board. """
@@ -210,7 +216,7 @@ def parse_instance(filename: str) -> Board:
 class RicochetRobots(Problem):
 	def __init__(self, board: Board):
 		""" O construtor especifica o estado inicial. """
-		super().__init__(RRState(board))
+		super().__init__(RRState(board), board.target)
 
 	def actions(self, state: RRState):
 		""" Retorna uma lista de ações que podem ser executadas a
@@ -311,17 +317,17 @@ class RicochetRobots(Problem):
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
 	
-		if node.state.board.target.target == 'Y':
+		if self.goal.target == 'Y':
 			robot =  node.state.board.yellow
-		elif  node.state.board.target.target == 'R':
+		elif self.goal.target == 'R':
 			robot =  node.state.board.red
-		elif  node.state.board.target.target == 'G':
+		elif self.goal.target == 'G':
 			robot =  node.state.board.green
-		elif  node.state.board.target.target == 'B':
+		elif self.goal.target == 'B':
 			robot =  node.state.board.blue
 
 		x, y = robot.x, robot.y
-		xt, yt = node.state.board.target.x, node.state.board.target.y
+		xt, yt = self.goal.x, self.goal.y
 		return abs(x - xt) + abs(y - yt)
 
 
@@ -334,11 +340,11 @@ if __name__ == "__main__":
 	board = parse_instance(sys.argv[1])
 	ricochet_robots = RicochetRobots(board)
 
-	for x in range(0, 4):
+	'''for x in range(0, 4):
 		for y in range(0, 4):
 			print(f'({x},{y})', end=' ') if board.grid[x][y].robot == None else print(board.grid[x][y].robot, end=' ')
 
-		print('')
+		print('')'''
 
 
 	result = astar_search(ricochet_robots, ricochet_robots.h)
