@@ -181,7 +181,7 @@ class RicochetRobots(Problem):
 		""" Retorna uma lista de ações que podem ser executadas a
 		partir do estado passado como argumento. """
 		# TODO
-		pass
+		return ["up", "down", "left", "right"]
 
 	def result(self, state: RRState, action):
 		""" Retorna o estado resultante de executar a 'action' sobre
@@ -189,7 +189,14 @@ class RicochetRobots(Problem):
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
 		# TODO
-		pass
+		if action == "up":
+			return state.
+		elif action == "down":
+			return state.
+		elif action == "left":
+			return state.
+		elif action == "right":
+			return state.
 
 	def goal_test(self, state: RRState):
 		""" Retorna True se e só se o estado passado como argumento é
