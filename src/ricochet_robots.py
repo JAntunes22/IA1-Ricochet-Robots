@@ -25,7 +25,7 @@ class RRState:
 		return self.id < other.id
 
 
-class Board:
+class Board(Node):
 	class Cell:
 		def __init__(self, x, y):
 			self.up = None
@@ -81,6 +81,7 @@ class Board:
 		def setTarget(self, target):
 			self.target = target
 		
+
 	
 	""" Representacao interna de um tabuleiro de Ricochet Robots. """
 	def __init__(self, n, robots, target, barriers):
@@ -122,6 +123,9 @@ class Board:
 				c.setDown(None)
 			elif(barrier[2] == 'l'):
 				c.setLeft(None)
+	
+	def getTarget(self):
+		return self.target
 				
 
 	def robot_position(self, robot: str):
@@ -206,16 +210,57 @@ def parse_instance(filename: str) -> Board:
 class RicochetRobots(Problem):
 	def __init__(self, board: Board):
 		""" O construtor especifica o estado inicial. """
-		self.initial = RRState(Board)
+		self.initial = RRState(board)
+		self.target = board.target 
+		if self.target.target == 'Y':
+			self.robot = board.yellow
+		elif self.target.target == 'R':
+			self.robot = board.red
+		elif self.target.target == 'G':
+			self.robot = board.green
+		elif self.target.target == 'B':
+			self.robot = board.blue
 
 	def actions(self, state: RRState):
 		""" Retorna uma lista de ações que podem ser executadas a
 		partir do estado passado como argumento. """
-    
-		return ["move_blue_top", "move_red_top", "move_yellow_top", "move_green_top", \
-				"move_blue_right", "move_red_right", "move_yellow_right", "move_green_right", \
-				"move_blue_down", "move_red_down", "move_yellow_down", "move_green_down", \
-				"move_blue_left", "move_red_left", "move_yellow_left", "move_green_left",]
+		
+		possible_actions = []
+
+		if state.board.yellow.up:
+			possible_actions.append("move_yellow_up")
+		if state.board.red.up:
+			possible_actions.append("move_red_up")
+		if state.board.blue.up:
+			possible_actions.append("move_blue_up")
+		if state.board.green.up:
+			possible_actions.append("move_green_up")
+		if state.board.yellow.down:
+			possible_actions.append("move_yellow_down")
+		if state.board.red.down:
+			possible_actions.append("move_red_down")
+		if state.board.blue.down:
+			possible_actions.append("move_blue_down")
+		if state.board.green.down:
+			possible_actions.append("move_green_down")
+		if state.board.yellow.right:
+			possible_actions.append("move_yellow_right")
+		if state.board.red.right:
+			possible_actions.append("move_red_right")
+		if state.board.blue.right:
+			possible_actions.append("move_blue_right")
+		if state.board.green.right:
+			possible_actions.append("move_green_right")
+		if state.board.yellow.left:
+			possible_actions.append("move_yellow_left")
+		if state.board.red.left:
+			possible_actions.append("move_red_left")
+		if state.board.blue.left:
+			possible_actions.append("move_blue_left")
+		if state.board.green.left:
+			possible_actions.append("move_green_left")
+
+		return possible_actions
 
 	def result(self, state: RRState, action):
 		""" Retorna o estado resultante de executar a 'action' sobre
@@ -223,14 +268,14 @@ class RicochetRobots(Problem):
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
 
-		if action == "move_blue_top":
-			return state.board.robot_move('B', 't')
-		elif action == "move_red_top":
-			return state.board.robot_move('R', 't')
-		elif action == "move_yellow_top":
-			return state.board.robot_move('Y', 't')
-		elif action == "move_green_top":
-			return state.board.robot_move('G', 't')
+		if action == "move_blue_up":
+			return state.board.robot_move('B', 'u')
+		elif action == "move_red_up":
+			return state.board.robot_move('R', 'u')
+		elif action == "move_yellow_up":
+			return state.board.robot_move('Y', 'u')
+		elif action == "move_green_up":
+			return state.board.robot_move('G', 'u')
 		elif action == "move_blue_right":
 			return state.board.robot_move('B', 'r')
 		elif action == "move_red_right":
@@ -260,21 +305,13 @@ class RicochetRobots(Problem):
 		""" Retorna True se e só se o estado passado como argumento é
 		um estado objetivo. Deve verificar se o alvo e o robô da
 		mesma cor ocupam a mesma célula no tabuleiro. """
-		robot = None
-		if state.board.target.target == 'Y':
-			robot = state.board.yellow
-		elif state.board.target.target == 'R':
-			robot = state.board.red
-		elif state.board.target.target == 'G':
-			robot = state.board.green
-		elif state.board.target.target == 'B':
-			robot = state.board.blue
-
-		return robot.getPosition() == state.board.target.getPosition()
+		return self.robot.getPosition() == state.board.target.getPosition()
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
-		#TODO
+		x, y = self.robot.x, self.robot.y
+		xt, yt = self.target.x, self.target.y
+		return abs(x - xt) + abs(y - yt)
 
 
 if __name__ == "__main__":
@@ -285,6 +322,8 @@ if __name__ == "__main__":
 	# Imprimir para o standard output no formato indicado.
 
 	board = parse_instance(sys.argv[1])
+	ricochet_robots = RicochetRobots(board)
+	node = astar_search(ricochet_robots, ricochet_robots.h)
+	#print(node.solution)
 
-	
 	pass
