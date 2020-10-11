@@ -63,7 +63,7 @@ class Board:
 		def getLeft(self):
 			return self.left
 
-		def getCords(self):
+		def getPosition(self):
 			return (self.x, self.y)
 
 		def addRobot(self, robot):
@@ -127,17 +127,48 @@ class Board:
 	def robot_position(self, robot: str):
 		""" Devolve a posição atual do robô passado como argumento. """
 		if(robot[0] == 'Y'):
-			return self.yellow.getCords()
+			return self.yellow.getPosition()
 		elif(robot[0] == 'R'):
-			return self.red.getCords()
+			return self.red.getPosition()
 		elif(robot[0] == 'G'):
-			return self.green.getCords()
+			return self.green.getPosition()
 		elif(robot[0] == 'B'):
-			return self.blue.getCords()
-		
+			return self.blue.getPosition()
 
-	# TODO: outros metodos da classe
+	
+	def robot_move(self, robot: str, direction: str):
+		cell = None
 
+		if(robot == 'Y'):
+			cell = self.yellow
+		elif(robot == 'R'):
+			cell = self.red
+		elif(robot == 'G'):
+			cell = self.green
+		elif(robot == 'B'):
+			cell = self.blue
+		else:
+			raise NotImplementedError
+
+		cell.removeRobot()
+
+		if direction == 'u':
+			while cell.up is not None:
+				cell = cell.up
+		elif direction == 'r':
+			while cell.right is not None:
+				cell = cell.right
+		elif direction == 'd':
+			while cell.down is not None:
+				cell = cell.down
+		elif direction == 'l':
+			while cell.left is not None:
+				cell = cell.left
+		else:
+			cell.addRobot(robot)
+			raise NotImplementedError
+
+		cell.addRobot(robot)
 
 def parse_instance(filename: str) -> Board:
 	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
@@ -180,35 +211,70 @@ class RicochetRobots(Problem):
 	def actions(self, state: RRState):
 		""" Retorna uma lista de ações que podem ser executadas a
 		partir do estado passado como argumento. """
-		# TODO
-		return ["up", "down", "left", "right"]
+    
+		return ["move_blue_top", "move_red_top", "move_yellow_top", "move_green_top", \
+				"move_blue_right", "move_red_right", "move_yellow_right", "move_green_right", \
+				"move_blue_down", "move_red_down", "move_yellow_down", "move_green_down", \
+				"move_blue_left", "move_red_left", "move_yellow_left", "move_green_left",]
 
 	def result(self, state: RRState, action):
 		""" Retorna o estado resultante de executar a 'action' sobre
 		'state' passado como argumento. A ação retornada deve ser uma
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
-		# TODO
-		if action == "up":
-			return state.
-		elif action == "down":
-			return state.
-		elif action == "left":
-			return state.
-		elif action == "right":
-			return state.
 
+		if action == "move_blue_top":
+			return state.board.robot_move('B', 't')
+		elif action == "move_red_top":
+			return state.board.robot_move('R', 't')
+		elif action == "move_yellow_top":
+			return state.board.robot_move('Y', 't')
+		elif action == "move_green_top":
+			return state.board.robot_move('G', 't')
+		elif action == "move_blue_right":
+			return state.board.robot_move('B', 'r')
+		elif action == "move_red_right":
+			return state.board.robot_move('R', 'r')
+		elif action == "move_yellow_right":
+			return state.board.robot_move('Y', 'r')
+		elif action == "move_green_right":
+			return state.board.robot_move('G', 'r')
+		elif action == "move_blue_down":
+			return state.board.robot_move('B', 'd')
+		elif action == "move_red_down":
+			return state.board.robot_move('R', 'd')
+		elif action == "move_yellow_down":
+			return state.board.robot_move('Y', 'd')
+		elif action == "move_green_down":
+			return state.board.robot_move('G', 'd')
+		elif action == "move_blue_left":
+			return state.board.robot_move('B', 'l')
+		elif action == "move_red_left":
+			return state.board.robot_move('R', 'l')
+		elif action == "move_yellow_left":
+			return state.board.robot_move('Y', 'l')
+		elif action == "move_green_left":
+			return state.board.robot_move('G', 'l')
+		
 	def goal_test(self, state: RRState):
 		""" Retorna True se e só se o estado passado como argumento é
 		um estado objetivo. Deve verificar se o alvo e o robô da
 		mesma cor ocupam a mesma célula no tabuleiro. """
-		# TODO
-		pass
+		robot = None
+		if state.board.target.target == 'Y':
+			robot = state.board.yellow
+		elif state.board.target.target == 'R':
+			robot = state.board.red
+		elif state.board.target.target == 'G':
+			robot = state.board.green
+		elif state.board.target.target == 'B':
+			robot = state.board.blue
+
+		return robot.getPosition() == state.board.target.getPosition()
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
-		# TODO
-		pass
+		#TODO
 
 
 if __name__ == "__main__":
