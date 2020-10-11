@@ -211,6 +211,7 @@ class RicochetRobots(Problem):
 	def actions(self, state: RRState):
 		""" Retorna uma lista de ações que podem ser executadas a
 		partir do estado passado como argumento. """
+    
 		return ["move_blue_top", "move_red_top", "move_yellow_top", "move_green_top", \
 				"move_blue_right", "move_red_right", "move_yellow_right", "move_green_right", \
 				"move_blue_down", "move_red_down", "move_yellow_down", "move_green_down", \
@@ -221,6 +222,7 @@ class RicochetRobots(Problem):
 		'state' passado como argumento. A ação retornada deve ser uma
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
+
 		if action == "move_blue_top":
 			return state.board.robot_move('B', 't')
 		elif action == "move_red_top":
@@ -253,7 +255,6 @@ class RicochetRobots(Problem):
 			return state.board.robot_move('Y', 'l')
 		elif action == "move_green_left":
 			return state.board.robot_move('G', 'l')
-
 		
 	def goal_test(self, state: RRState):
 		""" Retorna True se e só se o estado passado como argumento é
