@@ -25,7 +25,7 @@ class RRState:
 		return self.id < other.id
 
 
-class Board(Node):
+class Board:
 	class Cell:
 		def __init__(self, x, y):
 			self.up = None
@@ -85,13 +85,13 @@ class Board(Node):
 	
 	""" Representacao interna de um tabuleiro de Ricochet Robots. """
 	def __init__(self, n, robots, target, barriers):
-		self.grid = [[Board.Cell(i, j) for i in range(n)] for j in range(n)]
-		self.target = self.grid[target[2] - 1][target[1] - 1]
+		self.grid = [[Board.Cell(j, i) for i in range(n)] for j in range(n)]
+		self.target = self.grid[target[1] - 1][target[2] - 1]
 		self.target.setTarget(target[0])
 		self.n = n # grid size
 
 		for robot in robots:
-			c = self.grid[robot[2]-1][robot[1]-1]
+			c = self.grid[robot[1]-1][robot[2]-1]
 			c.addRobot(robot[0])
 
 			if(robot[0] == 'Y'):
@@ -103,18 +103,18 @@ class Board(Node):
 			elif(robot[0] == 'B'):
 				self.blue = c
 		
-		for y in range(0, n):
-			for x in range(0, n):
-				if x < (n - 1):
-					self.grid[y][x].setRight(self.grid[y][x+1])
-					self.grid[y][x+1].setLeft(self.grid[y][x])
+		for x in range(0, n):
+			for y in range(0, n):
 				if y < (n - 1):
-					self.grid[y][x].setDown(self.grid[y+1][x])
-					self.grid[y+1][x].setUp(self.grid[y][x])
+					self.grid[x][y].setRight(self.grid[x][y+1])
+					self.grid[x][y+1].setLeft(self.grid[x][y])
+				if x < (n - 1):
+					self.grid[x][y].setDown(self.grid[x+1][y])
+					self.grid[x+1][y].setUp(self.grid[x][y])
 
 		
 		for barrier in barriers:
-			c = self.grid[barrier[1] - 1][barrier[0] - 1]
+			c = self.grid[barrier[0] - 1][barrier[1] - 1]
 			if(barrier[2] == 'u'):
 				c.setUp(None)
 			elif(barrier[2] == 'r'):
@@ -157,16 +157,16 @@ class Board(Node):
 		cell.removeRobot()
 
 		if direction == 'u':
-			while cell.up is not None:
+			while cell.up and not cell.up.robot:
 				cell = cell.up
 		elif direction == 'r':
-			while cell.right is not None:
+			while cell.right and not cell.right.robot:
 				cell = cell.right
 		elif direction == 'd':
-			while cell.down is not None:
+			while cell.down and not cell.down.robot:
 				cell = cell.down
 		elif direction == 'l':
-			while cell.left is not None:
+			while cell.left and not cell.left.robot:
 				cell = cell.left
 		else:
 			cell.addRobot(robot)
@@ -210,16 +210,7 @@ def parse_instance(filename: str) -> Board:
 class RicochetRobots(Problem):
 	def __init__(self, board: Board):
 		""" O construtor especifica o estado inicial. """
-		self.initial = RRState(board)
-		self.target = board.target 
-		if self.target.target == 'Y':
-			self.robot = board.yellow
-		elif self.target.target == 'R':
-			self.robot = board.red
-		elif self.target.target == 'G':
-			self.robot = board.green
-		elif self.target.target == 'B':
-			self.robot = board.blue
+		super().__init__(RRState(board))
 
 	def actions(self, state: RRState):
 		""" Retorna uma lista de ações que podem ser executadas a
@@ -227,37 +218,37 @@ class RicochetRobots(Problem):
 		
 		possible_actions = []
 
-		if state.board.yellow.up:
+		if state.board.yellow.up and not state.board.yellow.up.robot:
 			possible_actions.append("move_yellow_up")
-		if state.board.red.up:
+		if state.board.red.up and not state.board.red.up.robot:
 			possible_actions.append("move_red_up")
-		if state.board.blue.up:
+		if state.board.blue.up and not state.board.blue.up.robot:
 			possible_actions.append("move_blue_up")
-		if state.board.green.up:
+		if state.board.green.up and not state.board.green.up.robot:
 			possible_actions.append("move_green_up")
-		if state.board.yellow.down:
+		if state.board.yellow.down and not state.board.yellow.down.robot:
 			possible_actions.append("move_yellow_down")
-		if state.board.red.down:
+		if state.board.red.down and not state.board.red.down.robot:
 			possible_actions.append("move_red_down")
-		if state.board.blue.down:
+		if state.board.blue.down and not state.board.blue.down.robot:
 			possible_actions.append("move_blue_down")
-		if state.board.green.down:
+		if state.board.green.down and not state.board.green.down.robot:
 			possible_actions.append("move_green_down")
-		if state.board.yellow.right:
+		if state.board.yellow.right and not state.board.yellow.right.robot:
 			possible_actions.append("move_yellow_right")
-		if state.board.red.right:
+		if state.board.red.right and not state.board.red.right.robot:
 			possible_actions.append("move_red_right")
-		if state.board.blue.right:
+		if state.board.blue.right and not state.board.blue.right.robot:
 			possible_actions.append("move_blue_right")
-		if state.board.green.right:
+		if state.board.green.right and not state.board.green.right.robot:
 			possible_actions.append("move_green_right")
-		if state.board.yellow.left:
+		if state.board.yellow.left and not state.board.yellow.left.robot:
 			possible_actions.append("move_yellow_left")
-		if state.board.red.left:
+		if state.board.red.left and not state.board.red.left.robot:
 			possible_actions.append("move_red_left")
-		if state.board.blue.left:
+		if state.board.blue.left and not state.board.blue.left.robot:
 			possible_actions.append("move_blue_left")
-		if state.board.green.left:
+		if state.board.green.left and not state.board.green.left.robot:
 			possible_actions.append("move_green_left")
 
 		return possible_actions
@@ -305,17 +296,36 @@ class RicochetRobots(Problem):
 		""" Retorna True se e só se o estado passado como argumento é
 		um estado objetivo. Deve verificar se o alvo e o robô da
 		mesma cor ocupam a mesma célula no tabuleiro. """
-		return self.robot.getPosition() == state.board.target.getPosition()
+
+		if state.board.target.target == 'Y':
+			robot = state.board.yellow
+		elif state.board.target.target == 'R':
+			robot = state.board.red
+		elif state.board.target.target == 'G':
+			robot = state.board.green
+		elif state.board.target.target == 'B':
+			robot = state.board.blue
+
+		return robot.getPosition() == state.board.target.getPosition()
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
-		x, y = self.robot.x, self.robot.y
-		xt, yt = self.target.x, self.target.y
+	
+		if node.state.board.target.target == 'Y':
+			robot =  node.state.board.yellow
+		elif  node.state.board.target.target == 'R':
+			robot =  node.state.board.red
+		elif  node.state.board.target.target == 'G':
+			robot =  node.state.board.green
+		elif  node.state.board.target.target == 'B':
+			robot =  node.state.board.blue
+
+		x, y = robot.x, robot.y
+		xt, yt = node.state.board.target.x, node.state.board.target.y
 		return abs(x - xt) + abs(y - yt)
 
 
 if __name__ == "__main__":
-	# TODO:
 	# Ler o ficheiro de input de sys.argv[1],
 	# Usar uma técnica de procura para resolver a instância,
 	# Retirar a solução a partir do nó resultante,
@@ -323,7 +333,13 @@ if __name__ == "__main__":
 
 	board = parse_instance(sys.argv[1])
 	ricochet_robots = RicochetRobots(board)
-	node = astar_search(ricochet_robots, ricochet_robots.h)
-	#print(node.solution)
 
-	pass
+	for x in range(0, 4):
+		for y in range(0, 4):
+			print(f'({x},{y})', end=' ') if board.grid[x][y].robot == None else print(board.grid[x][y].robot, end=' ')
+
+		print('')
+
+
+	result = astar_search(ricochet_robots, ricochet_robots.h)
+
