@@ -130,8 +130,8 @@ class Board:
 				c.setLeft(None)
 
 	def __str__(self):
-		for x in range(0, 4):
-			for y in range(0, 4):
+		for x in range(0, self.n):
+			for y in range(0, self.n):
 				print(f'({x},{y})', end=' ') if self.grid[x][y].robot == None else print(self.grid[x][y].robot, end=' ')
 
 			print('')
@@ -210,7 +210,7 @@ def parse_instance(filename: str) -> Board:
 	file = open(filename, "r")
 
 	n = int(file.readline())
-	for i in range(0, n):
+	for i in range(0, 4):
 		input_str = file.readline()
 		split_str = input_str.split()
 		split_str[1] = int(split_str[1])
@@ -365,4 +365,10 @@ if __name__ == "__main__":
 
 	node = astar_search(ricochet_robots)
 
-	print(node.state.board)
+	print(node.depth)
+	#print(node.state.board)
+
+	for e in node.solution():
+		print(e)
+
+	
