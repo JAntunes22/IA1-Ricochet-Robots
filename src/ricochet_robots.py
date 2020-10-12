@@ -9,6 +9,7 @@
 from search import Problem, Node, astar_search, breadth_first_tree_search, \
 	depth_first_tree_search, greedy_search
 import sys
+import copy
 
 
 class RRState:
@@ -127,7 +128,16 @@ class Board:
 			elif(barrier[2] == 'l'):
 				c.left.setRight(None)
 				c.setLeft(None)
-	
+
+	def __str__(self):
+		for x in range(0, 4):
+			for y in range(0, 4):
+				print(f'({x},{y})', end=' ') if self.grid[x][y].robot == None else print(self.grid[x][y].robot, end=' ')
+
+			print('')
+
+		return ''
+
 	def getTarget(self):
 		return self.target
 				
@@ -147,14 +157,16 @@ class Board:
 	def robot_move(self, robot: str, direction: str):
 		cell = None
 
+		b = copy.deepcopy(self)
+
 		if(robot == 'Y'):
-			cell = self.yellow
+			cell = b.yellow
 		elif(robot == 'R'):
-			cell = self.red
+			cell = b.red
 		elif(robot == 'G'):
-			cell = self.green
+			cell = b.green
 		elif(robot == 'B'):
-			cell = self.blue
+			cell = b.blue
 		else:
 			raise NotImplementedError
 
@@ -173,12 +185,20 @@ class Board:
 			while cell.left and not cell.left.robot:
 				cell = cell.left
 		else:
-			cell.addRobot(robot)
 			raise NotImplementedError
+
+		if(robot == 'Y'):
+		 	b.yellow = cell
+		elif(robot == 'R'):
+			b.red = cell
+		elif(robot == 'G'):
+			b.green = cell
+		elif(robot == 'B'):
+			b.blue = cell
 
 		cell.addRobot(robot)
 
-		return RRState(self)
+		return RRState(b)
 
 def parse_instance(filename: str) -> Board:
 	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
@@ -216,7 +236,7 @@ def parse_instance(filename: str) -> Board:
 class RicochetRobots(Problem):
 	def __init__(self, board: Board):
 		""" O construtor especifica o estado inicial. """
-		super().__init__(RRState(board), board.target)
+		self.initial = RRState(board)
 
 	def actions(self, state: RRState):
 		""" Retorna uma lista de ações que podem ser executadas a
@@ -265,38 +285,41 @@ class RicochetRobots(Problem):
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
 
+
 		if action == "move_blue_up":
-			return state.board.robot_move('B', 'u')
+			s = state.board.robot_move('B', 'u')
 		elif action == "move_red_up":
-			return state.board.robot_move('R', 'u')
+			s = state.board.robot_move('R', 'u')
 		elif action == "move_yellow_up":
-			return state.board.robot_move('Y', 'u')
+			s = state.board.robot_move('Y', 'u')
 		elif action == "move_green_up":
-			return state.board.robot_move('G', 'u')
+			s = state.board.robot_move('G', 'u')
 		elif action == "move_blue_right":
-			return state.board.robot_move('B', 'r')
+			s = state.board.robot_move('B', 'r')
 		elif action == "move_red_right":
-			return state.board.robot_move('R', 'r')
+			s = state.board.robot_move('R', 'r')
 		elif action == "move_yellow_right":
-			return state.board.robot_move('Y', 'r')
+			s = state.board.robot_move('Y', 'r')
 		elif action == "move_green_right":
-			return state.board.robot_move('G', 'r')
+			s = state.board.robot_move('G', 'r')
 		elif action == "move_blue_down":
-			return state.board.robot_move('B', 'd')
+			s = state.board.robot_move('B', 'd')
 		elif action == "move_red_down":
-			return state.board.robot_move('R', 'd')
+			s = state.board.robot_move('R', 'd')
 		elif action == "move_yellow_down":
-			return state.board.robot_move('Y', 'd')
+			s = state.board.robot_move('Y', 'd')
 		elif action == "move_green_down":
-			return state.board.robot_move('G', 'd')
+			s = state.board.robot_move('G', 'd')
 		elif action == "move_blue_left":
-			return state.board.robot_move('B', 'l')
+			s = state.board.robot_move('B', 'l')
 		elif action == "move_red_left":
-			return state.board.robot_move('R', 'l')
+			s = state.board.robot_move('R', 'l')
 		elif action == "move_yellow_left":
-			return state.board.robot_move('Y', 'l')
+			s = state.board.robot_move('Y', 'l')
 		elif action == "move_green_left":
-			return state.board.robot_move('G', 'l')
+			s = state.board.robot_move('G', 'l')
+			
+		return s
 		
 	def goal_test(self, state: RRState):
 		""" Retorna True se e só se o estado passado como argumento é
@@ -317,17 +340,17 @@ class RicochetRobots(Problem):
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
 	
-		if self.goal.target == 'Y':
+		if node.state.board.target.target == 'Y':
 			robot =  node.state.board.yellow
-		elif self.goal.target == 'R':
+		elif node.state.board.target.target  == 'R':
 			robot =  node.state.board.red
-		elif self.goal.target == 'G':
+		elif node.state.board.target.target  == 'G':
 			robot =  node.state.board.green
-		elif self.goal.target == 'B':
+		elif node.state.board.target.target  == 'B':
 			robot =  node.state.board.blue
 
 		x, y = robot.x, robot.y
-		xt, yt = self.goal.x, self.goal.y
+		xt, yt = node.state.board.target.x, node.state.board.target.y
 		return abs(x - xt) + abs(y - yt)
 
 
@@ -340,12 +363,6 @@ if __name__ == "__main__":
 	board = parse_instance(sys.argv[1])
 	ricochet_robots = RicochetRobots(board)
 
-	'''for x in range(0, 4):
-		for y in range(0, 4):
-			print(f'({x},{y})', end=' ') if board.grid[x][y].robot == None else print(board.grid[x][y].robot, end=' ')
+	node = astar_search(ricochet_robots)
 
-		print('')'''
-
-
-	result = astar_search(ricochet_robots, ricochet_robots.h)
-
+	print(node.state.board)
