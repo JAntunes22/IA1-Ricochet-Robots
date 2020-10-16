@@ -40,6 +40,8 @@ class Board:
 			self.target = None
 			self.robot = None
 
+			self.steps = -1
+
 		def setUp(self, p):
 			self.up = p
 
@@ -90,6 +92,7 @@ class Board:
 		self.target = self.grid[target[1] - 1][target[2] - 1]
 		self.target.setTarget(target[0])
 		self.n = n # grid size
+		self.target.steps = 0
 
 		for robot in robots:
 			c = self.grid[robot[1]-1][robot[2]-1]
@@ -128,6 +131,50 @@ class Board:
 			elif(barrier[2] == 'l'):
 				c.left.setRight(None)
 				c.setLeft(None)
+
+		level = 0
+		changed = True
+
+		while changed:
+			changed = False
+			for i in range(0, n):
+				for j in range(0, n):
+					if self.grid[i][j].steps == level:
+						c = self.grid[i][j]
+						while c.up:
+							if c.up.steps < 0:
+								c.up.steps = level + 1
+								c = c.up
+								changed = True
+							else:
+								break						
+						c = self.grid[i][j]
+						while c.down:
+							if c.down.steps < 0:
+								c.down.steps = level + 1
+								c = c.down
+								changed = True
+							else:
+								break
+						c = self.grid[i][j]
+						while c.right:
+							if c.right.steps < 0:
+								c.right.steps = level + 1
+								c = c.right
+								changed = True
+							else:
+								break
+						c = self.grid[i][j]
+						while c.left:
+							if c.left.steps < 0:
+								c.left.steps = level + 1
+								c = c.left
+								changed = True
+							else:
+								break
+			level += 1
+
+		
 
 	def __str__(self):
 		for x in range(0, self.n):
@@ -316,9 +363,10 @@ class RicochetRobots(Problem):
 		elif node.state.board.target.target  == 'B':
 			robot =  node.state.board.blue
 
-		x, y = robot.x, robot.y
-		xt, yt = node.state.board.target.x, node.state.board.target.y
-		return abs(x - xt) + abs(y - yt)
+		# x, y = robot.x, robot.y
+		# xt, yt = node.state.board.target.x, node.state.board.target.y
+		# return abs(x - xt) + abs(y - yt)
+		return robot.steps
 
 
 if __name__ == "__main__":
