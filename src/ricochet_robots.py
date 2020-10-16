@@ -362,11 +362,11 @@ class RicochetRobots(Problem):
 			robot =  node.state.board.green
 		elif node.state.board.target.target  == 'B':
 			robot =  node.state.board.blue
-
-		# x, y = robot.x, robot.y
-		# xt, yt = node.state.board.target.x, node.state.board.target.y
-		# return abs(x - xt) + abs(y - yt)
 		return robot.steps
+		
+		'''x, y = robot.x, robot.y
+		xt, yt = node.state.board.target.x, node.state.board.target.y
+		return abs(x - xt) + abs(y - yt)'''
 
 
 if __name__ == "__main__":
@@ -386,4 +386,5 @@ if __name__ == "__main__":
 	for e in node.solution():
 		print(e[0] + " " + e[1])
 
+	#print(node.state.board)
 	
