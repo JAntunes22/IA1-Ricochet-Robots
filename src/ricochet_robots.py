@@ -245,37 +245,37 @@ class RicochetRobots(Problem):
 		possible_actions = []
 
 		if state.board.yellow.up and not state.board.yellow.up.robot:
-			possible_actions.append("move_yellow_up")
+			possible_actions.append(("Y","u"))
 		if state.board.red.up and not state.board.red.up.robot:
-			possible_actions.append("move_red_up")
+			possible_actions.append(("R", "u"))
 		if state.board.blue.up and not state.board.blue.up.robot:
-			possible_actions.append("move_blue_up")
+			possible_actions.append(("B", "u"))
 		if state.board.green.up and not state.board.green.up.robot:
-			possible_actions.append("move_green_up")
+			possible_actions.append(("G", "u"))
 		if state.board.yellow.down and not state.board.yellow.down.robot:
-			possible_actions.append("move_yellow_down")
+			possible_actions.append(("Y", "d"))
 		if state.board.red.down and not state.board.red.down.robot:
-			possible_actions.append("move_red_down")
+			possible_actions.append(("R", "d"))
 		if state.board.blue.down and not state.board.blue.down.robot:
-			possible_actions.append("move_blue_down")
+			possible_actions.append(("B", "d"))
 		if state.board.green.down and not state.board.green.down.robot:
-			possible_actions.append("move_green_down")
+			possible_actions.append(("G", "d"))
 		if state.board.yellow.right and not state.board.yellow.right.robot:
-			possible_actions.append("move_yellow_right")
+			possible_actions.append(("Y", "r"))
 		if state.board.red.right and not state.board.red.right.robot:
-			possible_actions.append("move_red_right")
+			possible_actions.append(("R", "r"))
 		if state.board.blue.right and not state.board.blue.right.robot:
-			possible_actions.append("move_blue_right")
+			possible_actions.append(("B", "r"))
 		if state.board.green.right and not state.board.green.right.robot:
-			possible_actions.append("move_green_right")
+			possible_actions.append(("G", "r"))
 		if state.board.yellow.left and not state.board.yellow.left.robot:
-			possible_actions.append("move_yellow_left")
+			possible_actions.append(("Y", "l"))
 		if state.board.red.left and not state.board.red.left.robot:
-			possible_actions.append("move_red_left")
+			possible_actions.append(("R", "l"))
 		if state.board.blue.left and not state.board.blue.left.robot:
-			possible_actions.append("move_blue_left")
+			possible_actions.append(("B", "l"))
 		if state.board.green.left and not state.board.green.left.robot:
-			possible_actions.append("move_green_left")
+			possible_actions.append(("G", "l"))
 
 		return possible_actions
 
@@ -285,41 +285,8 @@ class RicochetRobots(Problem):
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
 
+		return state.board.robot_move(action[0], action[1])
 
-		if action == "move_blue_up":
-			s = state.board.robot_move('B', 'u')
-		elif action == "move_red_up":
-			s = state.board.robot_move('R', 'u')
-		elif action == "move_yellow_up":
-			s = state.board.robot_move('Y', 'u')
-		elif action == "move_green_up":
-			s = state.board.robot_move('G', 'u')
-		elif action == "move_blue_right":
-			s = state.board.robot_move('B', 'r')
-		elif action == "move_red_right":
-			s = state.board.robot_move('R', 'r')
-		elif action == "move_yellow_right":
-			s = state.board.robot_move('Y', 'r')
-		elif action == "move_green_right":
-			s = state.board.robot_move('G', 'r')
-		elif action == "move_blue_down":
-			s = state.board.robot_move('B', 'd')
-		elif action == "move_red_down":
-			s = state.board.robot_move('R', 'd')
-		elif action == "move_yellow_down":
-			s = state.board.robot_move('Y', 'd')
-		elif action == "move_green_down":
-			s = state.board.robot_move('G', 'd')
-		elif action == "move_blue_left":
-			s = state.board.robot_move('B', 'l')
-		elif action == "move_red_left":
-			s = state.board.robot_move('R', 'l')
-		elif action == "move_yellow_left":
-			s = state.board.robot_move('Y', 'l')
-		elif action == "move_green_left":
-			s = state.board.robot_move('G', 'l')
-			
-		return s
 		
 	def goal_test(self, state: RRState):
 		""" Retorna True se e só se o estado passado como argumento é
@@ -369,6 +336,6 @@ if __name__ == "__main__":
 	#print(node.state.board)
 
 	for e in node.solution():
-		print(e)
+		print(e[0] + " " + e[1])
 
 	
