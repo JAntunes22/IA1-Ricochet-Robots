@@ -2,9 +2,9 @@
 # Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
 # Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
 
-# Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
+# Grupo 07:
+# 92446 David Baptista
+# 92498 Joao Antunes
 
 from search import Problem, Node, astar_search, breadth_first_tree_search, \
 	depth_first_tree_search, greedy_search
@@ -67,7 +67,7 @@ class Board:
 			return self.left
 
 		def getPosition(self):
-			return (self.x, self.y)
+			return (self.x + 1, self.y + 1)
 
 		def addRobot(self, robot):
 			if not self.robot:
@@ -374,17 +374,15 @@ if __name__ == "__main__":
 	# Usar uma técnica de procura para resolver a instância,
 	# Retirar a solução a partir do nó resultante,
 	# Imprimir para o standard output no formato indicado.
+	# Ler tabuleiro do ficheiro "i1.txt":
 
 	board = parse_instance(sys.argv[1])
 	ricochet_robots = RicochetRobots(board)
-
 	node = astar_search(ricochet_robots)
 
 	print(node.depth)
-	#print(node.state.board)
 
 	for e in node.solution():
 		print(e[0] + " " + e[1])
 
-	#print(node.state.board)
 	
