@@ -142,15 +142,19 @@ class Board:
 					if self.grid[i][j].steps == level:
 						c = self.grid[i][j]
 						while c.up:
-							if c.up.steps < 0:
+							if c.up.steps == level + 1:
+								c = c.up
+							elif c.up.steps < 0:
 								c.up.steps = level + 1
 								c = c.up
 								changed = True
 							else:
-								break						
+								break
 						c = self.grid[i][j]
 						while c.down:
-							if c.down.steps < 0:
+							if c.down.steps == level + 1:
+								c = c.down
+							elif c.down.steps < 0:
 								c.down.steps = level + 1
 								c = c.down
 								changed = True
@@ -158,7 +162,9 @@ class Board:
 								break
 						c = self.grid[i][j]
 						while c.right:
-							if c.right.steps < 0:
+							if c.right.steps == level + 1:
+								c = c.right
+							elif c.right.steps < 0:
 								c.right.steps = level + 1
 								c = c.right
 								changed = True
@@ -166,7 +172,9 @@ class Board:
 								break
 						c = self.grid[i][j]
 						while c.left:
-							if c.left.steps < 0:
+							if c.left.steps == level + 1:
+								c = c.left
+							elif c.left.steps < 0:
 								c.left.steps = level + 1
 								c = c.left
 								changed = True
@@ -245,7 +253,7 @@ class Board:
 
 		cell.addRobot(robot)
 
-		return RRState(b)
+		return b
 
 def parse_instance(filename: str) -> Board:
 	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
@@ -332,7 +340,7 @@ class RicochetRobots(Problem):
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
 
-		return state.board.robot_move(action[0], action[1])
+		return RRState(state.board.robot_move(action[0], action[1]))
 
 		
 	def goal_test(self, state: RRState):
@@ -384,5 +392,3 @@ if __name__ == "__main__":
 
 	for e in node.solution():
 		print(e[0] + " " + e[1])
-
-	
