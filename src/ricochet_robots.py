@@ -332,7 +332,7 @@ class RicochetRobots(Problem):
 		if state.board.green.left and not state.board.green.left.robot:
 			possible_actions.append(("G", "l"))
 
-		return possible_actions
+		return possible_actions 
 
 	def result(self, state: RRState, action):
 		""" Retorna o estado resultante de executar a 'action' sobre
