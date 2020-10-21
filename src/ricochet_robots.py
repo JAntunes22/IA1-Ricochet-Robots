@@ -255,6 +255,19 @@ class Board:
 
 		return b
 
+	def robot_target(self):
+		""" Retorna o robot que e da mesma cor que o target"""
+		if self.target.target == 'Y':
+			robot = self.yellow
+		elif self.target.target  == 'R':
+			robot =  self.red
+		elif self.target.target  == 'G':
+			robot = self.green
+		elif self.target.target  == 'B':
+			robot =  self.blue
+
+		return robot
+
 def parse_instance(filename: str) -> Board:
 	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
 	uma instância da classe Board. """
@@ -348,28 +361,12 @@ class RicochetRobots(Problem):
 		um estado objetivo. Deve verificar se o alvo e o robô da
 		mesma cor ocupam a mesma célula no tabuleiro. """
 
-		if state.board.target.target == 'Y':
-			robot = state.board.yellow
-		elif state.board.target.target == 'R':
-			robot = state.board.red
-		elif state.board.target.target == 'G':
-			robot = state.board.green
-		elif state.board.target.target == 'B':
-			robot = state.board.blue
-
-		return robot.getPosition() == state.board.target.getPosition()
+		return state.board.robot_target().getPosition() == state.board.target.getPosition()
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
+		robot = node.state.board.robot_target()
 	
-		if node.state.board.target.target == 'Y':
-			robot =  node.state.board.yellow
-		elif node.state.board.target.target  == 'R':
-			robot =  node.state.board.red
-		elif node.state.board.target.target  == 'G':
-			robot =  node.state.board.green
-		elif node.state.board.target.target  == 'B':
-			robot =  node.state.board.blue
 		return robot.steps
 		
 		'''x, y = robot.x, robot.y
