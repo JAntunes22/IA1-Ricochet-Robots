@@ -37,10 +37,10 @@ class Board:
 			self.x = x
 			self.y = y
 
-			self.target = None
-			self.robot = None
+			self.target = None	# color of the target (if there is a target in the cell)
+			self.robot = None	# color of the robot (if there is a robot in the cell)
 
-			self.steps = -1
+			self.steps = -1		# numero de passos ate ao target (para a heuristica)
 
 		def setUp(self, p):
 			self.up = p
@@ -72,27 +72,22 @@ class Board:
 		def addRobot(self, robot):
 			if not self.robot:
 				self.robot = robot
-			else:
-				pass
-		
+
 		def removeRobot(self):
 			if self.robot:
 				self.robot = None
-			else:
-				pass
 
 		def setTarget(self, target):
 			self.target = target
-		
 
 	
 	""" Representacao interna de um tabuleiro de Ricochet Robots. """
 	def __init__(self, n, robots, target, barriers):
 		self.grid = [[Board.Cell(j, i) for i in range(n)] for j in range(n)]
-		self.target = self.grid[target[1] - 1][target[2] - 1]
-		self.target.setTarget(target[0])
-		self.n = n # grid size
-		self.target.steps = 0
+		self.targetCell = self.grid[target[1] - 1][target[2] - 1]
+		self.targetCell.setTarget(target[0])
+		self.targetCell.steps = 0
+		self.n = n	# grid size
 
 		for robot in robots:
 			c = self.grid[robot[1]-1][robot[2]-1]
@@ -117,6 +112,7 @@ class Board:
 					self.grid[x+1][y].setUp(self.grid[x][y])
 
 		
+		# criacao das barreiras
 		for barrier in barriers:
 			c = self.grid[barrier[0] - 1][barrier[1] - 1]
 			if(barrier[2] == 'u'):
@@ -132,6 +128,7 @@ class Board:
 				c.left.setRight(None)
 				c.setLeft(None)
 
+		# criacao da matriz de numero de passos ate ao alvo para a heuristica
 		level = 0
 		changed = True
 
@@ -182,8 +179,7 @@ class Board:
 								break
 			level += 1
 
-		
-
+	''' para debugging '''
 	def __str__(self):
 		for x in range(0, self.n):
 			for y in range(0, self.n):
@@ -194,9 +190,9 @@ class Board:
 		return ''
 
 	def getTarget(self):
-		return self.target
+		''' Devolve ponteiro para a celula target '''
+		return self.targetCell
 				
-
 	def robot_position(self, robot: str):
 		""" Devolve a posição atual do robô passado como argumento. """
 		if(robot[0] == 'Y'):
@@ -249,13 +245,13 @@ class Board:
 
 	def robot_target(self):
 		""" Retorna o robot que e da mesma cor que o target"""
-		if self.target.target == 'Y':
+		if self.targetCell.target == 'Y':
 			robot = self.yellow
-		elif self.target.target  == 'R':
+		elif self.targetCell.target  == 'R':
 			robot =  self.red
-		elif self.target.target  == 'G':
+		elif self.targetCell.target  == 'G':
 			robot = self.green
-		elif self.target.target  == 'B':
+		elif self.targetCell.target  == 'B':
 			robot =  self.blue
 
 		return robot
@@ -291,7 +287,6 @@ def parse_instance(filename: str) -> Board:
 		barriers.append(split_str)
 
 	return Board(n, robots, target, barriers)
-
 
 class RicochetRobots(Problem):
 	def __init__(self, board: Board):
@@ -349,13 +344,12 @@ class RicochetRobots(Problem):
 
 		return RRState(board)
 
-		
 	def goal_test(self, state: RRState):
 		""" Retorna True se e só se o estado passado como argumento é
 		um estado objetivo. Deve verificar se o alvo e o robô da
 		mesma cor ocupam a mesma célula no tabuleiro. """
 
-		return state.board.robot_target().getPosition() == state.board.target.getPosition()
+		return state.board.robot_target().getPosition() == state.board.targetCell.getPosition()
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
@@ -364,9 +358,8 @@ class RicochetRobots(Problem):
 		return robot.steps
 		
 		'''x, y = robot.x, robot.y
-		xt, yt = node.state.board.target.x, node.state.board.target.y
+		xt, yt = node.state.board.targetCell.x, node.state.board.targetCell.y
 		return abs(x - xt) + abs(y - yt)'''
-
 
 if __name__ == "__main__":
 	# Ler o ficheiro de input de sys.argv[1],
