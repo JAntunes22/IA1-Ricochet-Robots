@@ -270,9 +270,13 @@ def best_first_graph_search(problem, f, display=False):
 	frontier = PriorityQueue('min', f)
 	frontier.append(node)
 	explored = set()
+	#for i in range(0, 10):
 	while frontier:
 		node = frontier.pop()
-		#print(node.state.id)
+	#	print(f'id {node.state.id}')
+	#	print(f'h(n): {problem.h(node)}')
+	#	print(node.state.board)
+	
 		if problem.goal_test(node.state):
 			if display:
 				print(len(explored), "paths have been expanded and", len(frontier), "paths remain in the frontier")

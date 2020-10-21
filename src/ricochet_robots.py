@@ -40,7 +40,7 @@ class Board:
 			self.target = None	# color of the target (if there is a target in the cell)
 			self.robot = None	# color of the robot (if there is a robot in the cell)
 
-			self.steps = -1		# numero de passos ate ao target (para a heuristica)
+			self.steps = float('inf')	# numero de passos ate ao target (para a heuristica)
 
 		def setUp(self, p):
 			self.up = p
@@ -128,66 +128,113 @@ class Board:
 				c.left.setRight(None)
 				c.setLeft(None)
 
-		# criacao da matriz de numero de passos ate ao alvo para a heuristica
-		level = 0
-		changed = True
-
-		while changed:
-			changed = False
-			for i in range(0, n):
-				for j in range(0, n):
-					if self.grid[i][j].steps == level:
-						c = self.grid[i][j]
-						while c.up:
-							if c.up.steps == level + 1:
-								c = c.up
-							elif c.up.steps < 0:
-								c.up.steps = level + 1
-								c = c.up
-								changed = True
-							else:
-								break
-						c = self.grid[i][j]
-						while c.down:
-							if c.down.steps == level + 1:
-								c = c.down
-							elif c.down.steps < 0:
-								c.down.steps = level + 1
-								c = c.down
-								changed = True
-							else:
-								break
-						c = self.grid[i][j]
-						while c.right:
-							if c.right.steps == level + 1:
-								c = c.right
-							elif c.right.steps < 0:
-								c.right.steps = level + 1
-								c = c.right
-								changed = True
-							else:
-								break
-						c = self.grid[i][j]
-						while c.left:
-							if c.left.steps == level + 1:
-								c = c.left
-							elif c.left.steps < 0:
-								c.left.steps = level + 1
-								c = c.left
-								changed = True
-							else:
-								break
-			level += 1
 
 	''' para debugging '''
 	def __str__(self):
 		for x in range(0, self.n):
 			for y in range(0, self.n):
 				print(f'({x},{y})', end=' ') if self.grid[x][y].robot == None else print(self.grid[x][y].robot, end=' ')
-
+				#print(f'{self.grid[x][y].steps}', end=' ')
 			print('')
 
 		return ''
+
+	def calculateSteps(self):
+		level = 0
+		fifo = [self.getTarget()]
+		calculated = []
+
+		for x in range(0, self.n):
+			for y in range(0, self.n):
+				self.grid[x][y].steps = float('inf')
+
+		self.targetCell.steps = 0
+
+		while fifo:
+			cell = fifo.pop(0)
+			calculated.append(cell)
+			level = cell.steps
+
+			c = cell
+			while c.up:
+				c = c.up
+				if c in calculated:
+					break
+
+				if c.steps > level + 1:
+					c.steps = level + 1
+					
+					if c.robot:
+						calculated.append(c)
+						break
+					else:
+						fifo.append(c)
+
+				elif c.steps == level + 1 and not c.robot:
+					
+					continue
+				else:
+					break
+
+			c = cell
+			while c.right:
+				c = c.right
+				if c in calculated:
+					break
+
+				if c.steps > level + 1:
+					c.steps = level + 1
+					
+					if c.robot:
+						calculated.append(c)
+						break
+					else:
+						fifo.append(c)
+				
+				elif c.steps == level + 1 and not c.robot:
+					continue
+				else:
+					break
+
+			c = cell
+			while c.down:
+				c = c.down
+				if c in calculated:
+					break
+
+				if c.steps > level + 1:
+					c.steps = level + 1
+					
+					if c.robot:
+						calculated.append(c)
+						break
+					else:
+						fifo.append(c)
+				
+				elif c.steps == level + 1 and not c.robot:
+					continue
+				else:
+					break
+			
+			c = cell
+			while c.left:
+				c = c.left
+				if c in calculated:
+					break
+
+				if c.steps > level + 1:
+					c.steps = level + 1
+					
+					if c.robot:
+						calculated.append(c)
+						break
+					else:
+						fifo.append(c)
+				
+				elif c.steps == level + 1 and not c.robot:
+					continue
+				else:
+					break
 
 	def getTarget(self):
 		''' Devolve ponteiro para a celula target '''
@@ -354,6 +401,7 @@ class RicochetRobots(Problem):
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
 		robot = node.state.board.robot_target()
+		node.state.board.calculateSteps()
 	
 		return robot.steps
 		
@@ -371,7 +419,6 @@ if __name__ == "__main__":
 	board = parse_instance(sys.argv[1])
 	ricochet_robots = RicochetRobots(board)
 	node = astar_search(ricochet_robots)
-
 	print(node.depth)
 
 	for e in node.solution():
