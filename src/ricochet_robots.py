@@ -212,18 +212,14 @@ class Board:
 	def robot_move(self, robot: str, direction: str):
 		cell = None
 
-		b = copy.deepcopy(self)
-
 		if(robot == 'Y'):
-			cell = b.yellow
+			cell = self.yellow
 		elif(robot == 'R'):
-			cell = b.red
+			cell = self.red
 		elif(robot == 'G'):
-			cell = b.green
+			cell = self.green
 		elif(robot == 'B'):
-			cell = b.blue
-		else:
-			raise NotImplementedError
+			cell = self.blue
 
 		cell.removeRobot()
 
@@ -239,21 +235,17 @@ class Board:
 		elif direction == 'l':
 			while cell.left and not cell.left.robot:
 				cell = cell.left
-		else:
-			raise NotImplementedError
 
 		if(robot == 'Y'):
-		 	b.yellow = cell
+		 	self.yellow = cell
 		elif(robot == 'R'):
-			b.red = cell
+			self.red = cell
 		elif(robot == 'G'):
-			b.green = cell
+			self.green = cell
 		elif(robot == 'B'):
-			b.blue = cell
+			self.blue = cell
 
 		cell.addRobot(robot)
-
-		return b
 
 	def robot_target(self):
 		""" Retorna o robot que e da mesma cor que o target"""
@@ -352,8 +344,10 @@ class RicochetRobots(Problem):
 		'state' passado como argumento. A ação retornada deve ser uma
 		das presentes na lista obtida pela execução de
 		self.actions(state). """
+		board = copy.deepcopy(state.board)
+		board.robot_move(action[0], action[1])
 
-		return RRState(state.board.robot_move(action[0], action[1]))
+		return RRState(board)
 
 		
 	def goal_test(self, state: RRState):
