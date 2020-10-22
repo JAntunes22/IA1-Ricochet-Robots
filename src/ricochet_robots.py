@@ -28,66 +28,10 @@ class RRState:
 
 class Board:
 	target_surrounded = False
-	class Cell:
-		def __init__(self, x, y):
-			self.up = None
-			self.right = None
-			self.down = None
-			self.left = None
-			
-			self.x = x
-			self.y = y
-
-			self.target = None	# color of the target (if there is a target in the cell)
-			self.robot = None	# color of the robot (if there is a robot in the cell)
-
-			self.steps = float('inf')	# numero de passos ate ao target (para a heuristica)
-
-		def setUp(self, p):
-			self.up = p
-
-		def setDown(self, p):
-			self.down = p
-
-		def setRight(self, p):
-			self.right = p
-
-		def setLeft(self, p):
-			self.left = p
-
-		def getUp(self):
-			return self.up
-
-		def getDown(self):
-			return self.down
-
-		def getRight(self):
-			return self.right
-
-		def getLeft(self):
-			return self.left
-
-		def getPosition(self):
-			return (self.x + 1, self.y + 1)
-
-		def addRobot(self, robot):
-			if not self.robot:
-				self.robot = robot
-
-		def removeRobot(self):
-			if self.robot:
-				self.robot = None
-
-		def setTarget(self, target):
-			self.target = target
-
 	
 	""" Representacao interna de um tabuleiro de Ricochet Robots. """
 	def __init__(self, n, robots, target, barriers):
-		self.grid = [[Board.Cell(j, i) for i in range(n)] for j in range(n)]
-		self.targetCell = self.grid[target[1] - 1][target[2] - 1]
-		self.targetCell.setTarget(target[0])
-		self.targetCell.steps = 0
+		self.grid = [[float("inf") for i in range(n)] for j in range(n)]
 		self.n = n	# grid size
 
 		for robot in robots:
