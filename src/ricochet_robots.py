@@ -430,21 +430,13 @@ class RicochetRobots(Problem):
 
 			c = 0
 			if not node.state.board.target_surrounded:
-				if node.state.board.getTarget().getUp().robot:
-					pass
-				else:
+				if not node.state.board.getTarget().getUp().robot:
 					c += 1
-				if node.state.board.getTarget().getDown().robot:
-					pass
-				else:
+				if not node.state.board.getTarget().getDown().robot:
 					c += 1
-				if node.state.board.getTarget().getRight().robot:
-					pass
-				else:
+				if not node.state.board.getTarget().getRight().robot:
 					c += 1
-				if node.state.board.getTarget().getLeft().robot:
-					pass
-				else:
+				if not node.state.board.getTarget().getLeft().robot:
 					c += 1
 				
 			return robot.steps + c
