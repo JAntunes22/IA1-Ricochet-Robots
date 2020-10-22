@@ -27,6 +27,7 @@ class RRState:
 
 
 class Board:
+	target_surrounded = False
 	class Cell:
 		def __init__(self, x, y):
 			self.up = None
@@ -128,6 +129,14 @@ class Board:
 				c.left.setRight(None)
 				c.setLeft(None)
 
+		if not self.targetCell.up:
+			Board.target_surrounded = True
+		if not self.targetCell.down:
+			Board.target_surrounded = True
+		if not self.targetCell.right:
+			Board.target_surrounded = True
+		if not self.targetCell.left:
+			Board.target_surrounded = True
 
 	''' para debugging '''
 	def __str__(self):
@@ -138,6 +147,12 @@ class Board:
 			print('')
 
 		return ''
+
+	def __eq__(self, other):
+		if isinstance(other, Board):
+			return self.yellow.getPosition() == other.yellow.getPosition() and self.red.getPosition() == other.red.getPosition() \
+				and self.green.getPosition() == other.green.getPosition() and self.blue.getPosition() == other.blue.getPosition()
+		return False
 
 	def calculateSteps(self):
 		level = 0
@@ -407,10 +422,33 @@ class RicochetRobots(Problem):
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
-		robot = node.state.board.robot_target()
-		node.state.board.calculateSteps()
+		if node.depth > 2 and node.state.board == node.parent.parent.state.board:
+			return float('inf')
+		else:
+			robot = node.state.board.robot_target()
+			node.state.board.calculateSteps()
 
-		return robot.steps
+			c = 0
+			if not node.state.board.target_surrounded:
+				if node.state.board.getTarget().getUp().robot:
+					pass
+				else:
+					c += 1
+				if node.state.board.getTarget().getDown().robot:
+					pass
+				else:
+					c += 1
+				if node.state.board.getTarget().getRight().robot:
+					pass
+				else:
+					c += 1
+				if node.state.board.getTarget().getLeft().robot:
+					pass
+				else:
+					c += 1
+				
+			return robot.steps + c
+
 
 if __name__ == "__main__":
 	# Ler o ficheiro de input de sys.argv[1],
@@ -421,6 +459,7 @@ if __name__ == "__main__":
 
 	board = parse_instance(sys.argv[1])
 	ricochet_robots = RicochetRobots(board)
+
 	node = astar_search(ricochet_robots)
 	print(node.depth)
 
