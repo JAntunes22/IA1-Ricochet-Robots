@@ -23,7 +23,7 @@ class RRState:
 	def __lt__(self, other):
 		""" Este método é utilizado em caso de empate na gestão da lista
 		de abertos nas procuras informadas. """
-		return self.id < other.id
+		return self.board.manhattan_distance() < other.board.manhattan_distance()
 
 
 class Board:
@@ -303,6 +303,13 @@ class Board:
 
 		return robot
 
+	def manhattan_distance(self):
+		robot = self.robot_target()
+		x, y = robot.x, robot.y
+		xt, yt = self.targetCell.x, self.targetCell.y
+		
+		return abs(x - xt) + abs(y - yt) 
+
 def parse_instance(filename: str) -> Board:
 	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
 	uma instância da classe Board. """
@@ -402,12 +409,8 @@ class RicochetRobots(Problem):
 		""" Função heuristica utilizada para a procura A*. """
 		robot = node.state.board.robot_target()
 		node.state.board.calculateSteps()
-	
+
 		return robot.steps
-		
-		'''x, y = robot.x, robot.y
-		xt, yt = node.state.board.targetCell.x, node.state.board.targetCell.y
-		return abs(x - xt) + abs(y - yt)'''
 
 if __name__ == "__main__":
 	# Ler o ficheiro de input de sys.argv[1],
