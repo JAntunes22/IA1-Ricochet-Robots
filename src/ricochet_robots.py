@@ -28,187 +28,219 @@ class RRState:
 
 class Board:
 	target_surrounded = False
-	
+
 	""" Representacao interna de um tabuleiro de Ricochet Robots. """
 	def __init__(self, n, robots, target, barriers):
 		self.grid = [[float("inf") for i in range(n)] for j in range(n)]
 		self.n = n	# grid size
+		self.targetColour = target[0]
+		self.targetCell = (target[1] - 1, target[2] - 1)
+		self.barriers = []
 
 		for robot in robots:
-			c = self.grid[robot[1]-1][robot[2]-1]
-			c.addRobot(robot[0])
-
 			if(robot[0] == 'Y'):
-				self.yellow = c
+				self.yellow = (robot[1] - 1, robot[2] - 1)
 			elif(robot[0] == 'R'):
-				self.red = c
+				self.red = (robot[1] - 1, robot[2] - 1)
 			elif(robot[0] == 'G'):
-				self.green = c
+				self.green = (robot[1] - 1, robot[2] - 1)
 			elif(robot[0] == 'B'):
-				self.blue = c
-		
-		for x in range(0, n):
-			for y in range(0, n):
-				if y < (n - 1):
-					self.grid[x][y].setRight(self.grid[x][y+1])
-					self.grid[x][y+1].setLeft(self.grid[x][y])
-				if x < (n - 1):
-					self.grid[x][y].setDown(self.grid[x+1][y])
-					self.grid[x+1][y].setUp(self.grid[x][y])
-
+				self.blue = (robot[1] - 1, robot[2] - 1)
 		
 		# criacao das barreiras
 		for barrier in barriers:
-			c = self.grid[barrier[0] - 1][barrier[1] - 1]
-			if(barrier[2] == 'u'):
-				c.up.setDown(None)
-				c.setUp(None)
-			elif(barrier[2] == 'r'):
-				c.right.setLeft(None)
-				c.setRight(None)
-			elif(barrier[2] == 'd'):
-				c.down.setUp(None)
-				c.setDown(None)
-			elif(barrier[2] == 'l'):
-				c.left.setRight(None)
-				c.setLeft(None)
+			xy = (barrier[0] - 1, barrier[1] - 1)
+			self.barriers.append((xy, barrier[2]))
+			second_barrier = None
 
-		if not self.targetCell.up:
-			Board.target_surrounded = True
-		if not self.targetCell.down:
-			Board.target_surrounded = True
-		if not self.targetCell.right:
-			Board.target_surrounded = True
-		if not self.targetCell.left:
-			Board.target_surrounded = True
+			if barrier[2] == 'u':
+				if self.get_up(xy):
+					second_barrier = (self.get_up(xy), 'd')
+					self.barriers.append(second_barrier)
+			elif barrier[2] == 'd':
+				if self.get_down(xy):
+					second_barrier = (self.get_down(xy), 'u')
+					self.barriers.append(second_barrier)
+			elif barrier[2] == 'r':
+				if self.get_right(xy):
+					second_barrier = (self.get_right(xy), 'l')
+					self.barriers.append(second_barrier)
+			elif barrier[2] == 'l':
+				if self.get_left(xy):
+					second_barrier = (self.get_left(xy), 'r')
+					self.barriers.append(second_barrier)
+
+			if xy[0] == self.targetCell[0] and xy[1] == self.targetCell[1]:
+				Board.target_surrounded = True
+			if second_barrier and second_barrier[0][0] == self.targetCell[0] and second_barrier[0][1] == self.targetCell[1]:
+				Board.target_surrounded = True
+
 
 	''' para debugging '''
 	def __str__(self):
 		for x in range(0, self.n):
 			for y in range(0, self.n):
-				print(f'({x},{y})', end=' ') if self.grid[x][y].robot == None else print(self.grid[x][y].robot, end=' ')
-				#print(f'{self.grid[x][y].steps}', end=' ')
+				if self.has_robot((x, y)):
+					if self.yellow == (x,y):
+						r = 'Y'
+					elif self.red == (x,y):
+						r = 'R'
+					elif self.blue == (x, y):
+						r = 'B'
+					elif self.green == (x, y):
+						r = 'G'
+				print(f'{r}', end=' ') if self.has_robot((x,y)) else print(f'({x},{y})', end=' ')
+				#print(f'{self.grid[x][y]}', end=' ')
 			print('')
-
+	
 		return ''
 
 	def __eq__(self, other):
 		if isinstance(other, Board):
-			return self.yellow.getPosition() == other.yellow.getPosition() and self.red.getPosition() == other.red.getPosition() \
-				and self.green.getPosition() == other.green.getPosition() and self.blue.getPosition() == other.blue.getPosition()
+			return self.yellow == other.yellow and self.red == other.red and self.green == other.green and self.blue == other.blue
 		return False
 
 	def calculateSteps(self):
 		level = 0
-		fifo = [self.getTarget()]
+		fifo = [self.get_target()]
 		calculated = []
 
 		for x in range(0, self.n):
 			for y in range(0, self.n):
-				self.grid[x][y].steps = float('inf')
+				self.grid[x][y] = float('inf')
 
-		self.targetCell.steps = 0
+		self.grid[self.targetCell[0]][self.targetCell[1]] = 0
 
 		while fifo:
 			cell = fifo.pop(0)
 			calculated.append(cell)
-			level = cell.steps
+			level = self.grid[cell[0]][cell[1]]
 
 			c = cell
-			while c.up:
-				c = c.up
+			while self.get_up(c) and not self.has_barrier(c, 'u'):
+				c = self.get_up(c)
 				if c in calculated:
 					break
 
-				if c.steps > level + 1:
-					c.steps = level + 1
+				if self.grid[c[0]][c[1]] > level + 1:
+					self.grid[c[0]][c[1]] = level + 1
 					
-					if c.robot:
+					if self.has_robot(c):
 						calculated.append(c)
 						break
 					else:
 						fifo.append(c)
 
-				elif c.steps == level + 1 and not c.robot:
-					
+				elif self.grid[c[0]][c[1]] == level + 1 and not self.has_robot(c):
 					continue
 				else:
 					break
-
 			c = cell
-			while c.right:
-				c = c.right
+			while self.get_left(c) and not self.has_barrier(c, 'l'):
+				c = self.get_left(c)
 				if c in calculated:
 					break
 
-				if c.steps > level + 1:
-					c.steps = level + 1
+				if self.grid[c[0]][c[1]] > level + 1:
+					self.grid[c[0]][c[1]] = level + 1
 					
-					if c.robot:
+					if self.has_robot(c):
 						calculated.append(c)
 						break
 					else:
 						fifo.append(c)
-				
-				elif c.steps == level + 1 and not c.robot:
+
+				elif self.grid[c[0]][c[1]] == level + 1 and not self.has_robot(c):
 					continue
 				else:
 					break
-
 			c = cell
-			while c.down:
-				c = c.down
+			while self.get_down(c) and not self.has_barrier(c, 'd'):
+				c = self.get_down(c)
 				if c in calculated:
 					break
 
-				if c.steps > level + 1:
-					c.steps = level + 1
+				if self.grid[c[0]][c[1]] > level + 1:
+					self.grid[c[0]][c[1]] = level + 1
 					
-					if c.robot:
+					if self.has_robot(c):
 						calculated.append(c)
 						break
 					else:
 						fifo.append(c)
-				
-				elif c.steps == level + 1 and not c.robot:
+
+				elif self.grid[c[0]][c[1]] == level + 1 and not self.has_robot(c):
 					continue
 				else:
 					break
-			
 			c = cell
-			while c.left:
-				c = c.left
+			while self.get_right(c) and not self.has_barrier(c, 'r'):
+				c = self.get_right(c)
 				if c in calculated:
 					break
 
-				if c.steps > level + 1:
-					c.steps = level + 1
+				if self.grid[c[0]][c[1]] > level + 1:
+					self.grid[c[0]][c[1]] = level + 1
 					
-					if c.robot:
+					if self.has_robot(c):
 						calculated.append(c)
 						break
 					else:
 						fifo.append(c)
-				
-				elif c.steps == level + 1 and not c.robot:
+
+				elif self.grid[c[0]][c[1]] == level + 1 and not self.has_robot(c):
 					continue
 				else:
 					break
+	
+	def get_up(self, cell):
+		if(cell[0] == 0):
+			return None
+		else:
+			return (cell[0] - 1, cell[1])
 
-	def getTarget(self):
-		''' Devolve ponteiro para a celula target '''
+	def get_down(self, cell):
+		if(cell[0] == self.n - 1):
+			return None
+		else:
+			return (cell[0] + 1, cell[1])
+
+	def get_left(self, cell):
+		if(cell[1] == 0):
+			return None
+		else:
+			return (cell[0], cell[1] - 1)
+
+	def get_right(self, cell):
+		if(cell[1] == self.n - 1):
+			return None
+		else:
+			return (cell[0], cell[1] + 1)
+	
+
+	def has_robot(self, c):
+		return c == self.yellow or c == self.blue or c == self.red or c == self.green
+
+	def has_barrier(self, c, d):
+		for barrier in self.barriers:
+			if barrier[0] == c and barrier[1] == d:
+				return True
+		return False
+
+	def get_target(self):
+		''' Devolve as coordenadas para a celula target '''
 		return self.targetCell
 				
 	def robot_position(self, robot: str):
 		""" Devolve a posição atual do robô passado como argumento. """
 		if(robot[0] == 'Y'):
-			return self.yellow.getPosition()
+			return (self.yellow[0] + 1, self.yellow[1] + 1) 
 		elif(robot[0] == 'R'):
-			return self.red.getPosition()
+			return (self.red[0] + 1, self.red[1] + 1) 
 		elif(robot[0] == 'G'):
-			return self.green.getPosition()
+			return (self.green[0] + 1, self.green[1] + 1) 
 		elif(robot[0] == 'B'):
-			return self.blue.getPosition()
+			return (self.blue[0] + 1, self.blue[1] + 1) 
 
 	
 	def robot_move(self, robot: str, direction: str):
@@ -223,20 +255,18 @@ class Board:
 		elif(robot == 'B'):
 			cell = self.blue
 
-		cell.removeRobot()
-
 		if direction == 'u':
-			while cell.up and not cell.up.robot:
-				cell = cell.up
+			while self.get_up(cell) and not self.has_robot(self.get_up(cell)) and not self.has_barrier(cell, direction):
+				cell = self.get_up(cell)
 		elif direction == 'r':
-			while cell.right and not cell.right.robot:
-				cell = cell.right
+			while self.get_right(cell) and not self.has_robot(self.get_right(cell)) and not self.has_barrier(cell, direction):
+				cell = self.get_right(cell)
 		elif direction == 'd':
-			while cell.down and not cell.down.robot:
-				cell = cell.down
+			while self.get_down(cell) and not self.has_robot(self.get_down(cell)) and not self.has_barrier(cell, direction):
+				cell = self.get_down(cell)
 		elif direction == 'l':
-			while cell.left and not cell.left.robot:
-				cell = cell.left
+			while self.get_left(cell) and not self.has_robot(self.get_left(cell)) and not self.has_barrier(cell, direction):
+				cell = self.get_left(cell)
 
 		if(robot == 'Y'):
 		 	self.yellow = cell
@@ -247,25 +277,23 @@ class Board:
 		elif(robot == 'B'):
 			self.blue = cell
 
-		cell.addRobot(robot)
-
 	def robot_target(self):
 		""" Retorna o robot que e da mesma cor que o target"""
-		if self.targetCell.target == 'Y':
+		if self.targetColour == 'Y':
 			robot = self.yellow
-		elif self.targetCell.target  == 'R':
-			robot =  self.red
-		elif self.targetCell.target  == 'G':
+		elif self.targetColour  == 'R':
+			robot = self.red
+		elif self.targetColour  == 'G':
 			robot = self.green
-		elif self.targetCell.target  == 'B':
-			robot =  self.blue
+		elif self.targetColour  == 'B':
+			robot = self.blue
 
 		return robot
 
 	def manhattan_distance(self):
 		robot = self.robot_target()
-		x, y = robot.x, robot.y
-		xt, yt = self.targetCell.x, self.targetCell.y
+		x, y = robot[0], robot[1]
+		xt, yt = self.targetCell[0], self.targetCell[1]
 		
 		return abs(x - xt) + abs(y - yt) 
 
@@ -312,37 +340,42 @@ class RicochetRobots(Problem):
 		
 		possible_actions = []
 
-		if state.board.yellow.up and not state.board.yellow.up.robot:
+		yellow = state.board.yellow
+		red = state.board.red
+		blue = state.board.blue
+		green = state.board.green
+
+		if state.board.get_up(yellow) and not state.board.has_robot(state.board.get_up(yellow)) and not state.board.has_barrier(yellow, 'u'):
 			possible_actions.append(("Y","u"))
-		if state.board.red.up and not state.board.red.up.robot:
+		if state.board.get_up(red) and not state.board.has_robot(state.board.get_up(red)) and not state.board.has_barrier(red, 'u'):
 			possible_actions.append(("R", "u"))
-		if state.board.blue.up and not state.board.blue.up.robot:
+		if state.board.get_up(blue) and not state.board.has_robot(state.board.get_up(blue)) and not state.board.has_barrier(blue, 'u'):
 			possible_actions.append(("B", "u"))
-		if state.board.green.up and not state.board.green.up.robot:
+		if state.board.get_up(green) and not state.board.has_robot(state.board.get_up(green)) and not state.board.has_barrier(green, 'u'):
 			possible_actions.append(("G", "u"))
-		if state.board.yellow.down and not state.board.yellow.down.robot:
+		if state.board.get_down(yellow) and not state.board.has_robot(state.board.get_down(yellow)) and not state.board.has_barrier(yellow, 'd'):
 			possible_actions.append(("Y", "d"))
-		if state.board.red.down and not state.board.red.down.robot:
+		if state.board.get_down(red) and not state.board.has_robot(state.board.get_down(red)) and not state.board.has_barrier(red, 'd'):
 			possible_actions.append(("R", "d"))
-		if state.board.blue.down and not state.board.blue.down.robot:
+		if state.board.get_down(blue) and not state.board.has_robot(state.board.get_down(blue)) and not state.board.has_barrier(blue, 'd'):
 			possible_actions.append(("B", "d"))
-		if state.board.green.down and not state.board.green.down.robot:
+		if state.board.get_down(green) and not state.board.has_robot(state.board.get_down(green)) and not state.board.has_barrier(green, 'd'):
 			possible_actions.append(("G", "d"))
-		if state.board.yellow.right and not state.board.yellow.right.robot:
+		if state.board.get_right(yellow) and not state.board.has_robot(state.board.get_right(yellow)) and not state.board.has_barrier(yellow, 'r'):
 			possible_actions.append(("Y", "r"))
-		if state.board.red.right and not state.board.red.right.robot:
+		if state.board.get_right(red) and not state.board.has_robot(state.board.get_right(red)) and not state.board.has_barrier(red, 'r'):
 			possible_actions.append(("R", "r"))
-		if state.board.blue.right and not state.board.blue.right.robot:
+		if state.board.get_right(blue) and not state.board.has_robot(state.board.get_right(blue)) and not state.board.has_barrier(blue, 'r'):
 			possible_actions.append(("B", "r"))
-		if state.board.green.right and not state.board.green.right.robot:
+		if state.board.get_right(green) and not state.board.has_robot(state.board.get_right(green)) and not state.board.has_barrier(green, 'r'):
 			possible_actions.append(("G", "r"))
-		if state.board.yellow.left and not state.board.yellow.left.robot:
+		if state.board.get_left(yellow) and not state.board.has_robot(state.board.get_left(yellow)) and not state.board.has_barrier(yellow, 'l'):
 			possible_actions.append(("Y", "l"))
-		if state.board.red.left and not state.board.red.left.robot:
+		if state.board.get_left(red) and not state.board.has_robot(state.board.get_left(red)) and not state.board.has_barrier(red, 'l'):
 			possible_actions.append(("R", "l"))
-		if state.board.blue.left and not state.board.blue.left.robot:
+		if state.board.get_left(blue) and not state.board.has_robot(state.board.get_left(blue)) and not state.board.has_barrier(blue, 'l'):
 			possible_actions.append(("B", "l"))
-		if state.board.green.left and not state.board.green.left.robot:
+		if state.board.get_left(green) and not state.board.has_robot(state.board.get_left(green)) and not state.board.has_barrier(green, 'l'):
 			possible_actions.append(("G", "l"))
 
 		return possible_actions 
@@ -362,7 +395,7 @@ class RicochetRobots(Problem):
 		um estado objetivo. Deve verificar se o alvo e o robô da
 		mesma cor ocupam a mesma célula no tabuleiro. """
 
-		return state.board.robot_target().getPosition() == state.board.targetCell.getPosition()
+		return state.board.robot_target() == state.board.get_target()
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
@@ -374,16 +407,17 @@ class RicochetRobots(Problem):
 
 			c = 0
 			if not node.state.board.target_surrounded:
-				if not node.state.board.getTarget().getUp().robot:
+				target = node.state.board.get_target()
+				if not node.state.board.has_robot(node.state.board.get_up(target)):
 					c += 1
-				if not node.state.board.getTarget().getDown().robot:
+				if not node.state.board.has_robot(node.state.board.get_down(target)):
 					c += 1
-				if not node.state.board.getTarget().getRight().robot:
+				if not node.state.board.has_robot(node.state.board.get_right(target)):
 					c += 1
-				if not node.state.board.getTarget().getLeft().robot:
+				if not node.state.board.has_robot(node.state.board.get_left(target)):
 					c += 1
 				
-			return robot.steps + c
+			return node.state.board.grid[robot[0]][robot[1]] + c
 
 
 if __name__ == "__main__":
@@ -395,7 +429,6 @@ if __name__ == "__main__":
 
 	board = parse_instance(sys.argv[1])
 	ricochet_robots = RicochetRobots(board)
-
 	node = astar_search(ricochet_robots)
 	print(node.depth)
 
