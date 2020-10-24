@@ -28,6 +28,7 @@ class RRState:
 
 class Board:
 	target_surrounded = False
+	visited_boards = {}
 
 	""" Representacao interna de um tabuleiro de Ricochet Robots. """
 	def __init__(self, n, robots, target, barriers):
@@ -40,12 +41,16 @@ class Board:
 		for robot in robots:
 			if(robot[0] == 'Y'):
 				self.yellow = (robot[1] - 1, robot[2] - 1)
+				self.yellow_moved = 1
 			elif(robot[0] == 'R'):
 				self.red = (robot[1] - 1, robot[2] - 1)
+				self.red_moved = 1
 			elif(robot[0] == 'G'):
 				self.green = (robot[1] - 1, robot[2] - 1)
+				self.green_moved = 1
 			elif(robot[0] == 'B'):
 				self.blue = (robot[1] - 1, robot[2] - 1)
+				self.blue_moved = 1
 		
 		# criacao das barreiras
 		for barrier in barriers:
@@ -74,6 +79,8 @@ class Board:
 				Board.target_surrounded = True
 			if second_barrier and second_barrier[0][0] == self.targetCell[0] and second_barrier[0][1] == self.targetCell[1]:
 				Board.target_surrounded = True
+
+			self.calculateSteps()
 
 
 	''' para debugging '''
@@ -192,7 +199,7 @@ class Board:
 					continue
 				else:
 					break
-	
+
 	def get_up(self, cell):
 		if(cell[0] == 0):
 			return None
@@ -226,6 +233,12 @@ class Board:
 			if barrier[0] == c and barrier[1] == d:
 				return True
 		return False
+
+	def has_surrounding(self, c, d):
+		if d == 'h':
+			return c != self.targetCell and self.get_left(c) and self.get_right(c) and (self.has_barrier(c, 'l') or self.has_barrier(c, 'r') or self.has_robot(self.get_left(c)) or self.has_robot(self.get_right(c)))
+		else:
+			return c != self.targetCell and self.get_up(c) and self.get_down(c) and (self.has_barrier(c, 'u') or self.has_barrier(c, 'd') or self.has_robot(self.get_down(c)) or self.get_up(self.get_right(c)))
 
 	def get_target(self):
 		''' Devolve as coordenadas para a celula target '''
@@ -289,6 +302,24 @@ class Board:
 			robot = self.blue
 
 		return robot
+	
+	def check_target_surroundings(self):
+		''' Verifica se o board tem um robo ao lado do target, para parar o robo da cor do target, e verifica se o caminho direto para
+		o target e accessivel, caso tenha um caminho. Incrementa 1 nas condicoes desfavoraveis'''
+		i = 0
+		if not self.target_surrounded:
+			target = self.get_target()
+
+			if not self.has_robot(self.get_up(target)):
+				i += 1
+			if not self.has_robot(self.get_down(target)):
+				i += 1
+			if not self.has_robot(self.get_right(target)):
+				i += 1
+			if not self.has_robot(self.get_left(target)):
+				i += 1
+			
+		return i
 
 	def manhattan_distance(self):
 		robot = self.robot_target()
@@ -399,25 +430,17 @@ class RicochetRobots(Problem):
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
-		if node.depth > 2 and node.state.board == node.parent.parent.state.board:
+		index = (('Y', node.state.board.yellow), ('G', node.state.board.green), ('B', node.state.board.blue), ('R', node.state.board.red))
+
+		if index in Board.visited_boards:
 			return float('inf')
 		else:
-			robot = node.state.board.robot_target()
+			Board.visited_boards[index] = node.state.board
 			node.state.board.calculateSteps()
+			robot = node.state.board.robot_target()
+			i = node.state.board.check_target_surroundings()
 
-			c = 0
-			if not node.state.board.target_surrounded:
-				target = node.state.board.get_target()
-				if not node.state.board.has_robot(node.state.board.get_up(target)):
-					c += 1
-				if not node.state.board.has_robot(node.state.board.get_down(target)):
-					c += 1
-				if not node.state.board.has_robot(node.state.board.get_right(target)):
-					c += 1
-				if not node.state.board.has_robot(node.state.board.get_left(target)):
-					c += 1
-				
-			return node.state.board.grid[robot[0]][robot[1]] + c
+			return node.state.board.grid[robot[0]][robot[1]] + i 
 
 
 if __name__ == "__main__":

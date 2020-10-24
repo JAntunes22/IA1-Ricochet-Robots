@@ -277,7 +277,6 @@ def best_first_graph_search(problem, f, display=False):
 		#print(problem.actions(node.state))
 		#print(f'f(n) = g(n) + h(n): {f(node) - problem.h(node)} + {problem.h(node)}')
 		#print(node.state.board)
-		#print(node.state.board.yellow)
 	
 		if problem.goal_test(node.state):
 			if display:
