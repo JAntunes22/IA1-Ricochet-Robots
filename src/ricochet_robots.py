@@ -25,6 +25,15 @@ class RRState:
 		de abertos nas procuras informadas. """
 		return self.board.manhattan_distance() < other.board.manhattan_distance()
 
+	def __hash__(self):
+		return hash((('Y', self.board.yellow), ('G', self.board.green), ('B', self.board.blue), ('R', self.board.red)))
+
+	def __eq__(self, other):
+		if isinstance(other, RRState) and isinstance(other.board, Board):
+			return self.board.yellow == other.board.yellow and self.board.red == other.board.red \
+				and self.board.green == other.board.green and self.board.blue == other.board.blue
+		return False
+
 
 class Board:
 	target_surrounded = False
@@ -102,10 +111,10 @@ class Board:
 	
 		return ''
 
-	def __eq__(self, other):
+	'''	def __eq__(self, other):
 		if isinstance(other, Board):
 			return self.yellow == other.yellow and self.red == other.red and self.green == other.green and self.blue == other.blue
-		return False
+		return False'''
 
 	def calculateSteps(self):
 		level = 0
@@ -430,17 +439,11 @@ class RicochetRobots(Problem):
 
 	def h(self, node: Node):
 		""" Função heuristica utilizada para a procura A*. """
-		index = (('Y', node.state.board.yellow), ('G', node.state.board.green), ('B', node.state.board.blue), ('R', node.state.board.red))
+		node.state.board.calculateSteps()
+		robot = node.state.board.robot_target()
+		i = node.state.board.check_target_surroundings()
 
-		if index in Board.visited_boards:
-			return float('inf')
-		else:
-			Board.visited_boards[index] = node.state.board
-			node.state.board.calculateSteps()
-			robot = node.state.board.robot_target()
-			i = node.state.board.check_target_surroundings()
-
-			return node.state.board.grid[robot[0]][robot[1]] + i 
+		return node.state.board.grid[robot[0]][robot[1]] + i 
 
 
 if __name__ == "__main__":
