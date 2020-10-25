@@ -102,12 +102,7 @@ class Board:
 			print('')
 	
 		return ''
-
-	'''	def __eq__(self, other):
-		if isinstance(other, Board):
-			return self.yellow == other.yellow and self.red == other.red and self.green == other.green and self.blue == other.blue
-		return False'''
-
+		
 	def calculateSteps(self):
 		level = 0
 		fifo = [self.get_target()]
@@ -298,8 +293,8 @@ class Board:
 		return robot
 	
 	def check_target_surroundings(self):
-		''' Verifica se o board tem um robo ao lado do target, para parar o robo da cor do target, e verifica se o caminho direto para
-		o target e accessivel, caso tenha um caminho. Incrementa 1 nas condicoes desfavoraveis'''
+		''' Caso nao haja nenhum robo a volta do target, entao o estado atual esta pelo menos a mais 1 passo de 
+		chegar ao estado final. Retorna 0 caso tenha pelo menos um robo a volta '''
 		if not self.target_surrounded:
 			target = self.get_target()
 
@@ -444,5 +439,3 @@ if __name__ == "__main__":
 
 	for e in node.solution():
 		print(e[0] + " " + e[1])
-
-	#compare_searchers([ricochet_robots], [], [breadth_first_tree_search])
