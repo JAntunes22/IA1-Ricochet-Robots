@@ -1,13 +1,13 @@
-# ricochet_robots.py: Template para implementação do 1º projeto de Inteligência Artificial 2020/2021.
-# Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
-# Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
+# ricochet_robots.py: Template para implementaceo do 1 projeto de Inteligencia Artificial 2020/2021.
+# Devem alterar as classes e funcoes neste ficheiro de acordo com as instrucoes do enunciado.
+# Alem das funcoes e classes ja definidas, podem acrescentar outras que considerem pertinentes.
 
 # Grupo 07:
 # 92446 David Baptista
 # 92498 Joao Antunes
 
 from search import Problem, Node, astar_search, breadth_first_tree_search, \
-	depth_first_tree_search, greedy_search
+	depth_first_tree_search, greedy_search, compare_searchers
 import sys
 import copy
 
@@ -21,7 +21,7 @@ class RRState:
 		RRState.state_id += 1
 
 	def __lt__(self, other):
-		""" Este método é utilizado em caso de empate na gestão da lista
+		""" Este metodo e utilizado em caso de empate na gesteo da lista
 		de abertos nas procuras informadas. """
 		return self.board.manhattan_distance() < other.board.manhattan_distance()
 
@@ -37,7 +37,6 @@ class RRState:
 
 class Board:
 	target_surrounded = False
-	visited_boards = {}
 
 	""" Representacao interna de um tabuleiro de Ricochet Robots. """
 	def __init__(self, n, robots, target, barriers):
@@ -50,16 +49,12 @@ class Board:
 		for robot in robots:
 			if(robot[0] == 'Y'):
 				self.yellow = (robot[1] - 1, robot[2] - 1)
-				self.yellow_moved = 1
 			elif(robot[0] == 'R'):
 				self.red = (robot[1] - 1, robot[2] - 1)
-				self.red_moved = 1
 			elif(robot[0] == 'G'):
 				self.green = (robot[1] - 1, robot[2] - 1)
-				self.green_moved = 1
 			elif(robot[0] == 'B'):
 				self.blue = (robot[1] - 1, robot[2] - 1)
-				self.blue_moved = 1
 		
 		# criacao das barreiras
 		for barrier in barriers:
@@ -88,9 +83,6 @@ class Board:
 				Board.target_surrounded = True
 			if second_barrier and second_barrier[0][0] == self.targetCell[0] and second_barrier[0][1] == self.targetCell[1]:
 				Board.target_surrounded = True
-
-			self.calculateSteps()
-
 
 	''' para debugging '''
 	def __str__(self):
@@ -233,7 +225,6 @@ class Board:
 		else:
 			return (cell[0], cell[1] + 1)
 	
-
 	def has_robot(self, c):
 		return c == self.yellow or c == self.blue or c == self.red or c == self.green
 
@@ -243,18 +234,12 @@ class Board:
 				return True
 		return False
 
-	def has_surrounding(self, c, d):
-		if d == 'h':
-			return c != self.targetCell and self.get_left(c) and self.get_right(c) and (self.has_barrier(c, 'l') or self.has_barrier(c, 'r') or self.has_robot(self.get_left(c)) or self.has_robot(self.get_right(c)))
-		else:
-			return c != self.targetCell and self.get_up(c) and self.get_down(c) and (self.has_barrier(c, 'u') or self.has_barrier(c, 'd') or self.has_robot(self.get_down(c)) or self.get_up(self.get_right(c)))
-
 	def get_target(self):
 		''' Devolve as coordenadas para a celula target '''
 		return self.targetCell
 				
 	def robot_position(self, robot: str):
-		""" Devolve a posição atual do robô passado como argumento. """
+		""" Devolve a posiceo atual do robo passado como argumento. """
 		if(robot[0] == 'Y'):
 			return (self.yellow[0] + 1, self.yellow[1] + 1) 
 		elif(robot[0] == 'R'):
@@ -315,20 +300,19 @@ class Board:
 	def check_target_surroundings(self):
 		''' Verifica se o board tem um robo ao lado do target, para parar o robo da cor do target, e verifica se o caminho direto para
 		o target e accessivel, caso tenha um caminho. Incrementa 1 nas condicoes desfavoraveis'''
-		i = 0
 		if not self.target_surrounded:
 			target = self.get_target()
 
-			if not self.has_robot(self.get_up(target)):
-				i += 1
-			if not self.has_robot(self.get_down(target)):
-				i += 1
-			if not self.has_robot(self.get_right(target)):
-				i += 1
-			if not self.has_robot(self.get_left(target)):
-				i += 1
+			if self.has_robot(self.get_up(target)):
+				return 0
+			if self.has_robot(self.get_down(target)):
+				return 0
+			if self.has_robot(self.get_right(target)):
+				return 0
+			if self.has_robot(self.get_left(target)):
+				return 0
 			
-		return i
+		return 1
 
 	def manhattan_distance(self):
 		robot = self.robot_target()
@@ -338,8 +322,8 @@ class Board:
 		return abs(x - xt) + abs(y - yt) 
 
 def parse_instance(filename: str) -> Board:
-	""" Lê o ficheiro cujo caminho é passado como argumento e retorna
-	uma instância da classe Board. """
+	""" Le o ficheiro cujo caminho e passado como argumento e retorna
+	uma instencia da classe Board. """
 
 	robots = []
 	barriers = []
@@ -375,7 +359,7 @@ class RicochetRobots(Problem):
 		self.initial = RRState(board)
 
 	def actions(self, state: RRState):
-		""" Retorna uma lista de ações que podem ser executadas a
+		""" Retorna uma lista de acoes que podem ser executadas a
 		partir do estado passado como argumento. """
 		
 		possible_actions = []
@@ -422,8 +406,8 @@ class RicochetRobots(Problem):
 
 	def result(self, state: RRState, action):
 		""" Retorna o estado resultante de executar a 'action' sobre
-		'state' passado como argumento. A ação retornada deve ser uma
-		das presentes na lista obtida pela execução de
+		'state' passado como argumento. A aceo retornada deve ser uma
+		das presentes na lista obtida pela execuceo de
 		self.actions(state). """
 		board = copy.deepcopy(state.board)
 		board.robot_move(action[0], action[1])
@@ -431,14 +415,14 @@ class RicochetRobots(Problem):
 		return RRState(board)
 
 	def goal_test(self, state: RRState):
-		""" Retorna True se e só se o estado passado como argumento é
-		um estado objetivo. Deve verificar se o alvo e o robô da
-		mesma cor ocupam a mesma célula no tabuleiro. """
+		""" Retorna True se e so se o estado passado como argumento e
+		um estado objetivo. Deve verificar se o alvo e o robo da
+		mesma cor ocupam a mesma celula no tabuleiro. """
 
 		return state.board.robot_target() == state.board.get_target()
 
 	def h(self, node: Node):
-		""" Função heuristica utilizada para a procura A*. """
+		""" Funceo heuristica utilizada para a procura A*. """
 		node.state.board.calculateSteps()
 		robot = node.state.board.robot_target()
 		i = node.state.board.check_target_surroundings()
@@ -448,8 +432,8 @@ class RicochetRobots(Problem):
 
 if __name__ == "__main__":
 	# Ler o ficheiro de input de sys.argv[1],
-	# Usar uma técnica de procura para resolver a instância,
-	# Retirar a solução a partir do nó resultante,
+	# Usar uma tecnica de procura para resolver a instencia,
+	# Retirar a soluceo a partir do no resultante,
 	# Imprimir para o standard output no formato indicado.
 	# Ler tabuleiro do ficheiro "i1.txt":
 
@@ -460,3 +444,5 @@ if __name__ == "__main__":
 
 	for e in node.solution():
 		print(e[0] + " " + e[1])
+
+	#compare_searchers([ricochet_robots], [], [breadth_first_tree_search])
